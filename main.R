@@ -3,6 +3,10 @@ library(readxl)
 library(dplyr)
 
 # Import data
-volunteers_data <- read_excel("volunteers.xlsx", sheet = "Principal") %>%
-  select(1:11) %>% select(-6)
-str(volunteers_data)
+datavoluntarios <- read_excel("Nueva Base.xlsx", sheet = "Principal", col_types = c("text",
+                                                                           "date", "date", "text", "text", "text",
+                                                                           "text", "text", "text", "text", "text",
+                                                                           "text", "text", "text", "text", "text",
+                                                                           "numeric")) %>% select(1:11) %>% select(-6)
+str(datavoluntarios)
+View(datavoluntarios)
