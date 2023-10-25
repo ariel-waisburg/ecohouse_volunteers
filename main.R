@@ -1,10 +1,12 @@
-# Import packages
+# Import packages ----------------------------------------------------------------
 library(readxl)
 library(dplyr)
 library(lubridate)
 library(stringr)
+library(mice)
+library(naniar)
 
-# Import data
+# Import data ----------------------------------------------------------------
 data_voluntarios <- read_excel("Nueva Base.xlsx", sheet = "Principal", col_types = c("text",
                                                                            "date", "date", "text", "text", "text",
                                                                            "text", "text", "text", "text", "text",
@@ -13,7 +15,8 @@ data_voluntarios <- read_excel("Nueva Base.xlsx", sheet = "Principal", col_types
 summary(data_voluntarios)
 View(data_voluntarios)
 
-# Limpieza
+# Limpieza ----------------------------------------------------------------
+
 # Tipos de datos
 data_voluntarios_2 <- data_voluntarios
 data_voluntarios_2$Origen <- as.factor(data_voluntarios_2$Origen)
@@ -32,8 +35,73 @@ data_voluntarios_2 <- data_voluntarios_2 %>%
   mutate(`Número de Documento NEW` = toupper(str_replace_all(`Número de Documento NEW`, "\\s", "")))
 
 # Documentos Duplicados
-#docs_duplicated <- data_voluntarios_2 %>% group_by(`Número de Documento NEW`) %>%  filter(n() > 1)
+data_voluntarios_2 %>%
+  group_by(`Número de Documento NEW`) %>%
+  filter(n() > 1) %>%
+  arrange(`Número de Documento NEW`)
+data_voluntarios_3 <- data_voluntarios_2[!duplicated(data_voluntarios_2[,-c(1,2,9)]),]
+data_voluntarios_3 <- data_voluntarios_3[complete.cases(data_voluntarios_3$`Número de Documento NEW`),]
+check_dnis_unique <- length(unique(data_voluntarios_2$`Número de Documento NEW`)) == nrow(data_voluntarios_3)
 
-summary(data_voluntarios_2)
-View(data_voluntarios_2)
+summary(data_voluntarios_3)
+View(data_voluntarios_3)
+
+# Outliers ----------------------------------------------------------------
+
+# Univariados
+
+# 1. Analizar Marca Temporal
+# 2. Analizar Fecha de Nacimiento / Edad
+
+# Multivariados
+
+# Missings ----------------------------------------------------------------
+md.pattern(data_voluntarios_3, rotate.names = TRUE)
+
+cor(data_voluntarios_3 %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "pairwise.complete.obs", method = c("pearson")) %>% round(digits = 2)
+cor(data_voluntarios_3 %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "complete.obs", method = c("pearson")) %>% round(digits = 2)
+cor(data_voluntarios_3 %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "complete.obs", method = c("spearman")) %>% round(digits = 2)
+
+dummyNA <-
+  as.data.frame(abs(is.na(data_voluntarios_3))) %>%
+  select(Nacionalidad, `Horas Diarias`, `Dias Semanales`, `Turno`, `Marca Temporal`)
+
+cor(dummyNA) %>% round(digits = 2)
+
+cor(data_voluntarios_3 %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric),
+    dummyNA, use = "pairwise.complete.obs") %>%
+  round(digits = 2)
+
+# De faltantes:
+# * Marca Temporal es "inimputable"
+# * Dias, Turno y Horas faltan la mitad de los registros como para imputarlos   => preguntar si sirve imputar igual.
+# * Nacionalidad tiene características más imputables.
+
+# Tests para ver si hay diferencias significativas entre los valores ausentes y no ausentes.
+
+# De Nacionalidad
+mcar_test(data_voluntarios_3 %>% select(`Nacionalidad`, `Número de Documento NEW`)) # NO sign.
+mcar_test(data_voluntarios_3 %>% select(`Nacionalidad`, `Horas Diarias`))
+mcar_test(data_voluntarios_3 %>% select(`Nacionalidad`, `Dias Semanales`))
+
+# Horas Diarias
+mcar_test(data_voluntarios_3 %>% select(`Marca Temporal`, `Horas Diarias`)) # NO sign.
+mcar_test(data_voluntarios_3 %>% select(`Tipo de Documento`, `Horas Diarias`))
+mcar_test(data_voluntarios_3 %>% select(`Turno`, `Horas Diarias`)) # NO sign.
+
+# Dias Semanales
+mcar_test(data_voluntarios_3 %>% select(`Marca Temporal`, `Dias Semanales`)) # NO sign.
+mcar_test(data_voluntarios_3 %>% select(`Tipo de Documento`, `Dias Semanales`))
+
+# Dias Semanales / Turno
+mcar_test(data_voluntarios_3 %>% select(`Turno`, `Dias Semanales`))
+
+# Resto
+mcar_test(data_voluntarios_3 %>% select(`Fecha de Nacimiento`, `Número de Documento NEW`))
+
+# Faltan aplicar la imputacion
+
+
+
+
 
