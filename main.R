@@ -7,7 +7,7 @@ library(mice)
 library(naniar)
 
 # Import data ----------------------------------------------------------------
-data_voluntarios <- read_excel("Nueva Base.xlsx", sheet = "Principal", col_types = c("text",
+data_voluntarios <- read_excel("Nueva Base (2).xlsx", sheet = "Principal", col_types = c("text",
                                                                            "date", "date", "text", "text", "text",
                                                                            "text", "text", "text", "text", "text",
                                                                            "text", "text", "text", "text", "text",
@@ -26,6 +26,8 @@ data_voluntarios_2$`Horas Diarias` <- factor(as.integer(ifelse(grepl("[A-Za-z]",
 data_voluntarios_2$`Dias Semanales` <- factor(as.integer(ifelse(grepl("[A-Za-z]", data_voluntarios$`Dias Semanales`), NA, data_voluntarios$`Dias Semanales`)))
 data_voluntarios_2$Turno <- as.factor(data_voluntarios_2$Turno)
 data_voluntarios_2 <- data_voluntarios_2[,-ncol(data_voluntarios)]
+View(data_voluntarios_2)
+
 
 # Validaciones
 fecha_edad_minima <- Sys.Date() - years(15)
@@ -101,7 +103,25 @@ mcar_test(data_voluntarios_3 %>% select(`Fecha de Nacimiento`, `Número de Docum
 
 # Faltan aplicar la imputacion
 
+# Proporcion de vacios de los campos Turno, Horas diarias y Dias Semanales en eventuales
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+#
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+#
+#
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
 
-
-
+sum(is.na(data_voluntarios_3$Turno))/nrow(data_voluntarios_3)
+sum(is.na(data_voluntarios_3$`Horas Diarias`))/nrow(data_voluntarios_3)
+sum(is.na(data_voluntarios_3$`Dias Semanales`))/nrow(data_voluntarios_3)
+sum(is.na(data_voluntarios_3$`Marca Temporal`))/nrow(data_voluntarios_3)
 
