@@ -133,11 +133,21 @@ modadias = as.character(names(sort(table(data_voluntarios_3$`Dias Semanales`), d
 modahoras = as.character(names(sort(table(data_voluntarios_3$`Horas Diarias`), decreasing = TRUE)[1]))
 modaturno = as.character(names(sort(table(data_voluntarios_3$Turno), decreasing = TRUE)[1]))
 
-#  FALTA Si la Nacionalidad es NA pero el tipo de documento es DNI, entonces Nacionalidad es Argentina
+data_voluntarios_3$Turno[is.na(data_voluntarios_3$Turno)] = modaturno
+data_voluntarios_3$`Dias Semanales`[is.na(data_voluntarios_3$`Dias Semanales`)] = modadias
+data_voluntarios_3$`Horas Diarias`[is.na(data_voluntarios_3$`Horas Diarias`)] = modahoras
+
+table(data_voluntarios_3$Turno)
 
 
-# Chequear que se cambian los datos que no son NA's tambien
-data_voluntarios_3 <- data_voluntarios_3 %>%
-  mutate(`Dias Semanales` = ifelse(is.na(`Dias Semanales`),modadias,`Dias Semanales`),
-         `Horas Diarias` = ifelse(is.na(`Horas Diarias`),modahoras,`Horas Diarias`),
-         Turno = ifelse(is.na(Turno),modaturno,Turno))
+# Analisis de edad
+
+ggplot(data_voluntarios_3,aes(x = edad)) + geom_density(size=0.5) + labs(title = element_text(label = "Densidad de la variable edad",hjust = 0.5, size = 16), x = "Edad", y = "Densidad")
+
+# Estudio de relaciones entre variables
+
+ks.test(data_voluntarios_3[data_voluntarios_3$cuenca=="GOLFO SAN JORGE",]$cantidad_fracturas,perforaciones[perforaciones$cuenca!="GOLFO SAN JORGE",]$cantidad_fracturas, alternative = 'greater')
+ks.test(data_voluntarios_3[data_voluntarios_3$cuenca=="GOLFO SAN JORGE",]$cantidad_fracturas,perforaciones[perforaciones$cuenca=="AUSTRAL",]$cantidad_fracturas, alternative = 'greater')
+ks.test(data_voluntarios_3[data_voluntarios_3$cuenca=="GOLFO SAN JORGE",]$cantidad_fracturas,perforaciones[perforaciones$cuenca=="NEUQUINA",]$cantidad_fracturas, alternative = 'greater')
+
+
