@@ -58,6 +58,9 @@ data_voluntarios_2 %>%
   group_by(`Número de Documento NEW`) %>%
   filter(n() > 1) %>%
   arrange(`Número de Documento NEW`)
+orden_permanencia = c("Recibidos","Historial","Actuales","Eventuales","Formulario")
+data_voluntarios_2$Origen <- factor(data_voluntarios_2$Origen, levels = orden_permanencia)
+data_voluntarios_2 <- data_voluntarios_2[order(data_voluntarios_2$Origen), ]
 data_voluntarios_3 <- data_voluntarios_2[!duplicated(data_voluntarios_2[,-c(1,2,9)]),]
 data_voluntarios_3 <- data_voluntarios_3[complete.cases(data_voluntarios_3$`Número de Documento NEW`),]
 check_dnis_unique <- length(unique(data_voluntarios_2$`Número de Documento NEW`)) == nrow(data_voluntarios_3)
