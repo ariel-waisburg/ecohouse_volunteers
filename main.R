@@ -148,6 +148,9 @@ modadias = as.character(names(sort(table(data_voluntarios_3$`Dias Semanales`), d
 modahoras = as.character(names(sort(table(data_voluntarios_3$`Horas Diarias`), decreasing = TRUE)[1]))
 modaturno = as.character(names(sort(table(data_voluntarios_3$Turno), decreasing = TRUE)[1]))
 
+#  FALTA Si la Nacionalidad es NA pero el tipo de documento es DNI, entonces Nacionalidad es Argentina
+
+
 # Chequear que se cambian los datos que no son NA's tambien
 data_voluntarios_3 <- data_voluntarios_3 %>%
   mutate(`Dias Semanales` = ifelse(is.na(`Dias Semanales`),modadias,`Dias Semanales`),
