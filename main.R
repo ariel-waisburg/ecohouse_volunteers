@@ -126,21 +126,6 @@ mcar_test(data_voluntarios_3 %>% select(`Turno`, `Dias Semanales`))
 mcar_test(data_voluntarios_3 %>% select(`Fecha de Nacimiento`, `Número de Documento NEW`))
 
 
-# Proporcion de vacios de los campos Turno, Horas diarias y Dias Semanales en eventuales
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-
-sum(is.na(data_voluntarios_3$Turno))/nrow(data_voluntarios_3)
-sum(is.na(data_voluntarios_3$`Horas Diarias`))/nrow(data_voluntarios_3)
-sum(is.na(data_voluntarios_3$`Dias Semanales`))/nrow(data_voluntarios_3)
-
 # Imputacion
 
 # Lleno NA's con moda en columnas de Horas Diarias, Dias Semanales, Turno
