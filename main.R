@@ -5,17 +5,33 @@ library(lubridate)
 library(stringr)
 library(mice)
 library(naniar)
+library(ggplot2)
+
 
 # Import data ----------------------------------------------------------------
-data_voluntarios <- read_excel("Nueva Base (2).xlsx", sheet = "Principal", col_types = c("text",
+data_voluntarios <- read_excel("Nueva Base (3).xlsx", sheet = "Principal", col_types = c("text",
                                                                            "date", "date", "text", "text", "text",
                                                                            "text", "text", "text", "text", "text",
                                                                            "text", "text", "text", "text", "text",
                                                                            "numeric")) %>% select(1:11) %>% select(-6)
-summary(data_voluntarios)
-View(data_voluntarios)
+
+
 
 # Limpieza ----------------------------------------------------------------
+
+# data_voluntarios = data_voluntarios %>% mutate(edad = year(Sys.Date()) - year(`Fecha de Nacimiento`))
+# outliersedad = data_voluntarios$edad[data_voluntarios$edad > median(data_voluntarios$edad,na.rm = T) + 1.5*IQR(data_voluntarios$edad,na.rm = T) | data_voluntarios$edad < median(data_voluntarios$edad,na.rm = T) - 1.5*IQR(data_voluntarios$edad,na.rm = T)]
+# length(na.omit(outliersedad))
+
+data_voluntarios <- data_voluntarios %>%
+  mutate(`Dias Semanales` = ifelse(grepl("^Días de semana por la tarde", `Disponibilidad Horaria`), 4, `Dias Semanales`),
+         `Horas Diarias` = ifelse(grepl("^Días de semana por la tarde", `Disponibilidad Horaria`), 3, `Horas Diarias`),
+         Turno = ifelse(grepl("^Días de semana por la tarde", `Disponibilidad Horaria`), "TARDE", Turno))
+
+data_voluntarios <- data_voluntarios %>%
+  mutate(`Dias Semanales` = ifelse(grepl("^Fines de semana y feriados", `Disponibilidad Horaria`), 2, `Dias Semanales`),
+         `Horas Diarias` = ifelse(grepl("^Fines de semana y feriados", `Disponibilidad Horaria`), 3, `Horas Diarias`),
+         Turno = ifelse(grepl("^Fines de semana y feriados", `Disponibilidad Horaria`), NA, Turno))
 
 # Tipos de datos
 data_voluntarios_2 <- data_voluntarios
@@ -27,6 +43,7 @@ data_voluntarios_2$`Dias Semanales` <- factor(as.integer(ifelse(grepl("[A-Za-z]"
 data_voluntarios_2$Turno <- as.factor(data_voluntarios_2$Turno)
 data_voluntarios_2 <- data_voluntarios_2[,-ncol(data_voluntarios)]
 View(data_voluntarios_2)
+
 
 
 # Validaciones
@@ -49,6 +66,10 @@ summary(data_voluntarios_3)
 View(data_voluntarios_3)
 
 # Outliers ----------------------------------------------------------------
+
+data_voluntarios_3 = data_voluntarios_3 %>% mutate(edad = year(Sys.Date()) - year(`Fecha de Nacimiento`))
+outliersedad = data_voluntarios_3$edad[data_voluntarios_3$edad > median(data_voluntarios_3$edad,na.rm = T) + 1.5*IQR(data_voluntarios_3$edad,na.rm = T) | data_voluntarios_3$edad < median(data_voluntarios_3$edad,na.rm = T) - 1.5*IQR(data_voluntarios_3$edad,na.rm = T)]
+length(na.omit(outliersedad))
 
 # Univariados
 
@@ -101,27 +122,31 @@ mcar_test(data_voluntarios_3 %>% select(`Turno`, `Dias Semanales`))
 # Resto
 mcar_test(data_voluntarios_3 %>% select(`Fecha de Nacimiento`, `Número de Documento NEW`))
 
-# Faltan aplicar la imputacion
 
 # Proporcion de vacios de los campos Turno, Horas diarias y Dias Semanales en eventuales
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-#
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
-#
-#
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
-# sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",])
+
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$Turno))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Horas Diarias`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Dias Semanales`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
+sum(is.na(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$`Marca Temporal`))/nrow(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",])
 
 sum(is.na(data_voluntarios_3$Turno))/nrow(data_voluntarios_3)
 sum(is.na(data_voluntarios_3$`Horas Diarias`))/nrow(data_voluntarios_3)
 sum(is.na(data_voluntarios_3$`Dias Semanales`))/nrow(data_voluntarios_3)
-sum(is.na(data_voluntarios_3$`Marca Temporal`))/nrow(data_voluntarios_3)
 
+# Imputacion
+
+# Lleno NA's con moda en columnas de Horas Diarias, Dias Semanales, Turno
+modadias = as.character(names(sort(table(data_voluntarios_3$`Dias Semanales`), decreasing = TRUE)[1]))
+modahoras = as.character(names(sort(table(data_voluntarios_3$`Horas Diarias`), decreasing = TRUE)[1]))
+modaturno = as.character(names(sort(table(data_voluntarios_3$Turno), decreasing = TRUE)[1]))
+
+# Chequear que se cambian los datos que no son NA's tambien
+data_voluntarios_3 <- data_voluntarios_3 %>%
+  mutate(`Dias Semanales` = ifelse(is.na(`Dias Semanales`),modadias,`Dias Semanales`),
+         `Horas Diarias` = ifelse(is.na(`Horas Diarias`),modahoras,`Horas Diarias`),
+         Turno = ifelse(is.na(Turno),modaturno,Turno))
