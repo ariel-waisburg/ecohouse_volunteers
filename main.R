@@ -139,15 +139,50 @@ data_voluntarios_3$`Horas Diarias`[is.na(data_voluntarios_3$`Horas Diarias`)] = 
 
 table(data_voluntarios_3$Turno)
 
-
-# Analisis de edad
-
-ggplot(data_voluntarios_3,aes(x = edad)) + geom_density(size=0.5) + labs(title = element_text(label = "Densidad de la variable edad",hjust = 0.5, size = 16), x = "Edad", y = "Densidad")
-
 # Estudio de relaciones entre variables
 
-ks.test(data_voluntarios_3[data_voluntarios_3$cuenca=="GOLFO SAN JORGE",]$cantidad_fracturas,perforaciones[perforaciones$cuenca!="GOLFO SAN JORGE",]$cantidad_fracturas, alternative = 'greater')
-ks.test(data_voluntarios_3[data_voluntarios_3$cuenca=="GOLFO SAN JORGE",]$cantidad_fracturas,perforaciones[perforaciones$cuenca=="AUSTRAL",]$cantidad_fracturas, alternative = 'greater')
-ks.test(data_voluntarios_3[data_voluntarios_3$cuenca=="GOLFO SAN JORGE",]$cantidad_fracturas,perforaciones[perforaciones$cuenca=="NEUQUINA",]$cantidad_fracturas, alternative = 'greater')
+# Numerica con categoricas
 
+# Relacion entre edad y turno, si tiene las tardes libres es porque debe tener mas de 25
+# Se compararan las medias de ambos grupos de personas, separados por su tipo de turno
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+# Hipotesis alternativa: La diferencia de las medias es mayor que cero
+# No hay evidencia estadistica suficiente para afirmar dicha hipotesis
+# alternativa, ya que su p-valor es 0.5685
 
+# Relacion entre edad y dias semanales
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Dias Semanales`))
+# Este test plantea que la edad y la cantidad de dias semanales disponibles
+# tienen cierta correlacion, ya que su hipotesis alternativa dice
+# "la correlacion no es igual a cero", es decir, que existe
+# en este caso no hay suficiente evidencia estadistica para afirmar dicha
+# hipotesis, ya que su p-valor es 0.236
+
+# Relacion entre edad y horas diarias
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Horas Diarias`))
+# Este test plantea en su hipotesis alternativa que existe algun tipo de correlacion
+# entre la edad y la cantidad de horas diarias que puede colaborar una persona
+# aunque dicha hipotesis no tiene suficiente evidencia estadistica que la contraste
+
+# Relacion entre dias semanales y horas diarias
+chisq.test(table(data_voluntarios_3$`Dias Semanales`,data_voluntarios_3$`Horas Diarias`))
+# El resultado de este test indica que existe una relacion significativa entre
+# los dias semanales que tiene una persona y las horas diarias, ya que su p-valor
+# es menor que 2.2e-16, es decir que hay evidencia estadistica suficinete para
+# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
+
+# Relacion entre dias semanles y turno
+chisq.test(table(data_voluntarios_3$`Dias Semanales`,data_voluntarios_3$Turno))
+# El resultado de este test indica que existe una relacion significativa entre
+# los dias semanales que tiene una persona y el turno del dia en el que se
+# encuentra disponible , ya que su p-valor es menor que 2.2e-16,
+# es decir que hay evidencia estadistica suficinete para
+# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
+
+# Relacion entre horas diarias y turno
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
+# El resultado de este test indica que existe una relacion significativa entre
+# las horas diarias que tiene una persona y el turno del dia en el que se
+# encuentra disponible , ya que su p-valor es menor que 2.2e-16,
+# es decir que hay evidencia estadistica suficinete para
+# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
