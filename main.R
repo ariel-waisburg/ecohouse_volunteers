@@ -156,13 +156,20 @@ t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntar
 # alternativa, ya que su p-valor es 0.5685
 
 # Relacion entre edad y origen, suponiendo que mientras el origen es mas "avanzado" mas grande es
-t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
-t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
-t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
-t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
-t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Recibidos",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Recibidos",]$edad, alternative = 'less')
+# Con un p-valor de 0.003 podemos afirmar que las personas que
+# forman parte del grupo de recibidos, promedian una edad
+# menor que las que no
 
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Historial",]$edad, alternative = 'greater')
 
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Actuales",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Actuales",]$edad, alternative = 'less')
+# Con un p-valor de 0.01 podemos afirmar que las personas que
+# forman parte del grupo de actuales, promedian una edad
+# menor que las que no
+
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Eventuales",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Formulario",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Formulario",]$edad, alternative = 'less')
 
 # Relacion entre edad y dias semanales
 cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Dias Semanales`),method = "spearman")
