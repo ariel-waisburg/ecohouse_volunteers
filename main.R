@@ -139,6 +139,11 @@ data_voluntarios_3$`Horas Diarias`[is.na(data_voluntarios_3$`Horas Diarias`)] = 
 
 table(data_voluntarios_3$Turno)
 
+
+
+
+
+
 # Estudio de relaciones entre variables
 
 # Numerica con categoricas
@@ -150,16 +155,25 @@ t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntar
 # No hay evidencia estadistica suficiente para afirmar dicha hipotesis
 # alternativa, ya que su p-valor es 0.5685
 
+# Relacion entre edad y origen, suponiendo que mientras el origen es mas "avanzado" mas grande es
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+
+
+
 # Relacion entre edad y dias semanales
-cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Dias Semanales`))
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Dias Semanales`),method = "spearman")
 # Este test plantea que la edad y la cantidad de dias semanales disponibles
 # tienen cierta correlacion, ya que su hipotesis alternativa dice
 # "la correlacion no es igual a cero", es decir, que existe
 # en este caso no hay suficiente evidencia estadistica para afirmar dicha
-# hipotesis, ya que su p-valor es 0.236
+# hipotesis, ya que su p-valor es 0.07108
 
 # Relacion entre edad y horas diarias
-cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Horas Diarias`))
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Horas Diarias`),method = "spearman")
 # Este test plantea en su hipotesis alternativa que existe algun tipo de correlacion
 # entre la edad y la cantidad de horas diarias que puede colaborar una persona
 # aunque dicha hipotesis no tiene suficiente evidencia estadistica que la contraste
@@ -186,3 +200,5 @@ chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
 # encuentra disponible , ya que su p-valor es menor que 2.2e-16,
 # es decir que hay evidencia estadistica suficinete para
 # afirmar la hipotesis alternativa que plantea lo afirmado previamente.
+
+table(data_voluntarios_3$Origen)
