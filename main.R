@@ -98,6 +98,16 @@ cor(data_voluntarios_3 %>% mutate_if(~ is.factor(.) || is.character(.) || is.POS
     dummyNA, use = "pairwise.complete.obs") %>%
   round(digits = 2)
 
+graphedad = ggplot(data_voluntarios_3, aes(x = edad)) + geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+        scale_y_continuous(limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+        scale_x_continuous(limits = c(0,80), breaks = seq(0,80, by = 10))
+
 # De faltantes:
 # * Marca Temporal es "inimputable"
 # * Dias, Turno y Horas faltan la mitad de los registros como para imputarlos   => preguntar si sirve imputar igual.
