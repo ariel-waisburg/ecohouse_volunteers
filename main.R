@@ -15,8 +15,6 @@ data_voluntarios <- read_excel("Nueva Base (3).xlsx", sheet = "Principal", col_t
                                                                            "text", "text", "text", "text", "text",
                                                                            "numeric")) %>% select(1:11) %>% select(-6)
 
-
-
 # Limpieza ----------------------------------------------------------------
 
 # data_voluntarios = data_voluntarios %>% mutate(edad = year(Sys.Date()) - year(`Fecha de Nacimiento`))
@@ -58,15 +56,18 @@ data_voluntarios_2 %>%
   group_by(`Número de Documento NEW`) %>%
   filter(n() > 1) %>%
   arrange(`Número de Documento NEW`)
-orden_permanencia = c("Recibidos","Historial","Actuales","Eventuales","Formulario")
+orden_permanencia = c("Recibidos","Actuales","Eventuales","Formulario", "Historial")
 data_voluntarios_2$Origen <- factor(data_voluntarios_2$Origen, levels = orden_permanencia)
 data_voluntarios_2 <- data_voluntarios_2[order(data_voluntarios_2$Origen), ]
 data_voluntarios_3 <- data_voluntarios_2[!duplicated(data_voluntarios_2[,-c(1,2,9)]),]
 data_voluntarios_3 <- data_voluntarios_3[complete.cases(data_voluntarios_3$`Número de Documento NEW`),]
-check_dnis_unique <- length(unique(data_voluntarios_2$`Número de Documento NEW`)) == nrow(data_voluntarios_3)
+check_dnis_unique <- length(unique(data_voluntarios_3$`Número de Documento NEW`)) == nrow(data_voluntarios_3)
+
+data_voluntarios_3[duplicated(data_voluntarios_3$`Número de Documento NEW`),]
 
 summary(data_voluntarios_3)
 View(data_voluntarios_3)
+table(data_voluntarios_3$Origen) / length(data_voluntarios_3$Origen) * 100 # para ver las freq. relativas
 
 # Outliers ----------------------------------------------------------------
 
@@ -209,3 +210,12 @@ chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
 # afirmar la hipotesis alternativa que plantea lo afirmado previamente.
 
 table(data_voluntarios_3$Origen)
+
+
+# Análisis exploratorio ---------------------------------------------------
+
+# Análisis estadístico ---------------------------------------------------
+
+# Relaciones entre variables ---------------------------------------------------
+
+# Algoritmos ---------------------------------------------------
