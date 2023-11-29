@@ -220,16 +220,6 @@ plot(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen))
 
 # Análisis exploratorio ---------------------------------------------------
 
-graphedad = ggplot(data_voluntarios_3, aes(x = edad)) + geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
-  labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5,size = 30),
-        axis.title.x = element_text(size = 20),
-        axis.title.y = element_text(size = 20),
-        axis.text.x = element_text(size = 17),
-        axis.text.y = element_text(size = 17)) +
-  scale_y_continuous(limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
-  scale_x_continuous(limits = c(0,80), breaks = seq(0,80, by = 10))
-
 table(data_voluntarios_3$`Horas Diarias`) / length(data_voluntarios_3$`Dias Semanales`)
 table(data_voluntarios_3$`Dias Semanales`)/ length(data_voluntarios_3$`Dias Semanales`)
 table(data_voluntarios_3$Origen)/ length(data_voluntarios_3$`Dias Semanales`)
@@ -259,10 +249,11 @@ pie_turno = ggplot(data_voluntarios_3, aes(x = "",fill = Turno)) +
   coord_polar(theta = "y") +
   labs(title = "Gráfico de Torta Frecuencia Turnos", fill = "Turno") +
   scale_fill_manual(values = c("blue","lightblue")) +
-  scale_y_continuous(limits = c(0, 1432), breaks = seq(0, 1500, by = 250)) +
+  scale_y_continuous(limits = c(0, 1428), breaks = seq(0, 1500, by = 250)) +
   theme(plot.title = element_text(hjust = 0.5,size = 30),
         legend.text = element_text(size = 12),
-        legend.title = element_text(size = 12))
+        legend.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
 
 bar_estado = ggplot(data_voluntarios_3, aes(x = Origen)) +
   geom_bar(fill = "blue", color = "black", alpha = 0.7) +
@@ -274,10 +265,108 @@ bar_estado = ggplot(data_voluntarios_3, aes(x = Origen)) +
         axis.text.y = element_text(size = 17)) +
   scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 150))
 
+data_voluntarios_3$nacionalidades_agrupadas = ifelse(!grepl("Argentina", data_voluntarios_3$Nacionalidad), "Extranjero", "Argentina")
+pie_nacionalidad = ggplot(data_voluntarios_3, aes(x = "",fill = nacionalidades_agrupadas)) +
+  geom_bar(width = 1, stat = "count", alpha = 0.8) +
+  coord_polar(theta = "y") +
+  labs(title = "Gráfico de Torta Frecuencia Nacionalidad", fill = "Nacionalidad") +
+  scale_fill_manual(values = c("lightblue","blue")) +
+  scale_y_continuous(limits = c(0, 1428), breaks = seq(0, 1500, by = 250)) +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
+
+pie_tipodocumento = ggplot(data_voluntarios_3, aes(x = "",fill = `Tipo de Documento`)) +
+  geom_bar(width = 1, stat = "count", alpha = 0.8) +
+  coord_polar(theta = "y") +
+  labs(title = "Gráfico de Torta Frecuencia Tipo de Documento", fill = "Tipo de Documento") +
+  scale_fill_manual(values = c("lightblue","blue")) +
+  scale_y_continuous(limits = c(0, 1428), breaks = seq(0, 1500, by = 250)) +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
+
 
 # Análisis estadístico ---------------------------------------------------
 
+summary(data_voluntarios_3$edad)
+
+graphedad = ggplot(data_voluntarios_3, aes(x = edad)) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_x_continuous(limits = c(0,80), breaks = seq(0,80, by = 10))
+
 # Relaciones entre variables ---------------------------------------------------
+
+# Comparacion medias de edades en relacion a las otras variables
+
+# Rechaza
+summary(aov(edad ~ Origen, data = data_voluntarios_3))
+TukeyHSD(aov(edad ~ Origen, data = data_voluntarios_3))
+
+summary(aov(edad ~ `Horas Diarias`, data = data_voluntarios_3))
+
+summary(aov(edad ~ `Dias Semanales`, data = data_voluntarios_3))
+
+summary(aov(edad ~ Turno, data = data_voluntarios_3))
+
+summary(aov(edad ~ nacionalidades_agrupadas, data = data_voluntarios_3))
+
+summary(aov(edad ~ `Tipo de Documento`, data = data_voluntarios_3))
+
+
+
+# FIJARSE FISHER RECHAZA SIEMPRE
+
+# Entre las 3 de disponibilidad horaria
+
+# Rechaza
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$`Dias Semanales`))
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$`Dias Semanales`))
+
+# Rechaza
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
+
+# Rechaza
+chisq.test(table(data_voluntarios_3$Turno,data_voluntarios_3$`Dias Semanales`))
+fisher.test(table(data_voluntarios_3$Turno,data_voluntarios_3$`Dias Semanales`))
+
+
+# Las 3 con origen
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
+
+chisq.test(table(data_voluntarios_3$Turno,data_voluntarios_3$Origen))
+fisher.test(table(data_voluntarios_3$Turno, data_voluntarios_3$Origen))
+
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
+
+# Las 3 con nacionalidad
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$nacionalidades_agrupadas))
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$nacionalidades_agrupadas))
+
+chisq.test(table(data_voluntarios_3$Turno,data_voluntarios_3$nacionalidades_agrupadas))
+fisher.test(table(data_voluntarios_3$Turno, data_voluntarios_3$nacionalidades_agrupadas))
+
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$nacionalidades_agrupadas))
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$nacionalidades_agrupadas))
+
+# Nacionalidad con origen
+chisq.test(table(data_voluntarios_3$Origen,data_voluntarios_3$nacionalidades_agrupadas))
+# Rechaza revisar
+fisher.test(table(data_voluntarios_3$Origen,data_voluntarios_3$nacionalidades_agrupadas))
+
+
 
 # Algoritmos ---------------------------------------------------
 
