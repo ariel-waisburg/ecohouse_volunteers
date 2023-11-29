@@ -58,7 +58,7 @@ data_voluntarios_2 %>%
   arrange(`Número de Documento NEW`)
 orden_permanencia = c("Recibidos","Actuales","Eventuales","Formulario", "Historial")
 data_voluntarios_2$Origen <- factor(data_voluntarios_2$Origen, levels = orden_permanencia)
-data_voluntarios_2 <- data_voluntarios_2[order(data_voluntarios_2$Origen), ]
+data_voluntarios_2 <- data_voluntarios_2[order(data_voluntarios_2$Origen), ] %>% filter(Origen != "Historial")
 data_voluntarios_3 <- data_voluntarios_2[!duplicated(data_voluntarios_2[,-c(1,2,9)]),]
 data_voluntarios_3 <- data_voluntarios_3[complete.cases(data_voluntarios_3$`Número de Documento NEW`),]
 check_dnis_unique <- length(unique(data_voluntarios_3$`Número de Documento NEW`)) == nrow(data_voluntarios_3)
@@ -68,6 +68,7 @@ data_voluntarios_3[duplicated(data_voluntarios_3$`Número de Documento NEW`),]
 summary(data_voluntarios_3)
 View(data_voluntarios_3)
 table(data_voluntarios_3$Origen) / length(data_voluntarios_3$Origen) * 100 # para ver las freq. relativas
+
 
 # Outliers ----------------------------------------------------------------
 
@@ -99,15 +100,6 @@ cor(data_voluntarios_3 %>% mutate_if(~ is.factor(.) || is.character(.) || is.POS
     dummyNA, use = "pairwise.complete.obs") %>%
   round(digits = 2)
 
-graphedad = ggplot(data_voluntarios_3, aes(x = edad)) + geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
-  labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5,size = 30),
-        axis.title.x = element_text(size = 20),
-        axis.title.y = element_text(size = 20),
-        axis.text.x = element_text(size = 17),
-        axis.text.y = element_text(size = 17)) +
-        scale_y_continuous(limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
-        scale_x_continuous(limits = c(0,80), breaks = seq(0,80, by = 10))
 
 # De faltantes:
 # * Marca Temporal es "inimputable"
@@ -149,8 +141,6 @@ data_voluntarios_3$`Dias Semanales`[is.na(data_voluntarios_3$`Dias Semanales`)] 
 data_voluntarios_3$`Horas Diarias`[is.na(data_voluntarios_3$`Horas Diarias`)] = modahoras
 
 table(data_voluntarios_3$Turno)
-
-
 
 
 
@@ -219,10 +209,70 @@ chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
 # es decir que hay evidencia estadistica suficinete para
 # afirmar la hipotesis alternativa que plantea lo afirmado previamente.
 
+
+
+t.test(data_voluntarios_3$edad[data_voluntarios_3$Origen=="Recibidos"],data_voluntarios_3$edad[data_voluntarios_3$Origen != "Recibidos"],alternative = "less")
+
+
 table(data_voluntarios_3$Origen)
 
 
 # Análisis exploratorio ---------------------------------------------------
+
+graphedad = ggplot(data_voluntarios_3, aes(x = edad)) + geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_x_continuous(limits = c(0,80), breaks = seq(0,80, by = 10))
+
+table(data_voluntarios_3$`Horas Diarias`) / length(data_voluntarios_3$`Dias Semanales`)
+table(data_voluntarios_3$`Dias Semanales`)/ length(data_voluntarios_3$`Dias Semanales`)
+table(data_voluntarios_3$Origen)/ length(data_voluntarios_3$`Dias Semanales`)
+table(data_voluntarios_3$Turno)/ length(data_voluntarios_3$`Dias Semanales`)
+table(data_voluntarios_3$`Tipo de Documento`)/ length(data_voluntarios_3$`Dias Semanales`)
+
+bar_horas = ggplot(data_voluntarios_3, aes(x = `Horas Diarias`)) + geom_bar(fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Grafico de Barras de las Horas Diarias Disponibles", x = "Horas Diarias Disponibles", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 1300), breaks = seq(0, 1300, by = 200))
+
+bar_dias = ggplot(data_voluntarios_3, aes(x = `Dias Semanales`)) + geom_bar(fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Grafico de Barras de los Dias Semanales Disponibles", x = "Dias Semanales Disponibles", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 200))
+
+pie_turno = ggplot(data_voluntarios_3, aes(x = "",fill = Turno)) +
+  geom_bar(width = 1, stat = "count", alpha = 0.8) +
+  coord_polar(theta = "y") +
+  labs(title = "Gráfico de Torta Frecuencia Turnos", fill = "Turno") +
+  scale_fill_manual(values = c("blue","lightblue")) +
+  scale_y_continuous(limits = c(0, 1432), breaks = seq(0, 1500, by = 250)) +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12))
+
+bar_estado = ggplot(data_voluntarios_3, aes(x = Origen)) +
+  geom_bar(fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Grafico de Barras de la Frecuencia de los Estados", x = "Estados", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 150))
+
 
 # Análisis estadístico ---------------------------------------------------
 
