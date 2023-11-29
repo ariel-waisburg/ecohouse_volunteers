@@ -6,6 +6,8 @@ library(stringr)
 library(mice)
 library(naniar)
 library(ggplot2)
+library(factoextra)
+library(FactoMineR)
 
 
 # Import data ----------------------------------------------------------------
@@ -16,10 +18,6 @@ data_voluntarios <- read_excel("Nueva Base (3).xlsx", sheet = "Principal", col_t
                                                                            "numeric")) %>% select(1:11) %>% select(-6)
 
 # Limpieza ----------------------------------------------------------------
-
-# data_voluntarios = data_voluntarios %>% mutate(edad = year(Sys.Date()) - year(`Fecha de Nacimiento`))
-# outliersedad = data_voluntarios$edad[data_voluntarios$edad > median(data_voluntarios$edad,na.rm = T) + 1.5*IQR(data_voluntarios$edad,na.rm = T) | data_voluntarios$edad < median(data_voluntarios$edad,na.rm = T) - 1.5*IQR(data_voluntarios$edad,na.rm = T)]
-# length(na.omit(outliersedad))
 
 data_voluntarios <- data_voluntarios %>%
   mutate(`Dias Semanales` = ifelse(grepl("^Días de semana por la tarde", `Disponibilidad Horaria`), 4, `Dias Semanales`),
@@ -215,6 +213,9 @@ t.test(data_voluntarios_3$edad[data_voluntarios_3$Origen=="Recibidos"],data_volu
 
 
 table(data_voluntarios_3$Origen)
+# Relacion entre edad y dias semanales
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen),method = "pearson")
+plot(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen))
 
 
 # Análisis exploratorio ---------------------------------------------------
@@ -279,3 +280,39 @@ bar_estado = ggplot(data_voluntarios_3, aes(x = Origen)) +
 # Relaciones entre variables ---------------------------------------------------
 
 # Algoritmos ---------------------------------------------------
+
+
+# PCA
+
+data_voluntarios_num <- apply(data_voluntarios_3 %>% select(7, 8), 2, function(i) as.numeric(i))
+data_voluntarios_num <- cbind(data_voluntarios_num, as.numeric(data_voluntarios_3$Origen), as.numeric(data_voluntarios_3$Turno))
+colnames(data_voluntarios_num)[3:4] = c("Origen", "Turno")
+cov(data_voluntarios_num, method = "pearson")
+cov(data_voluntarios_num, method = "spearman")
+
+corrplot::corrplot.mixed(cor(data_voluntarios_num, method = "pearson"))
+corrplot::corrplot.mixed(cor(data_voluntarios_num, method = "spearman"))
+
+data_voluntarios_num_scaled <- scale(data_voluntarios_num)
+
+pca <- prcomp(data_voluntarios_num_scaled)
+summary(pca)
+screeplot(pca)
+fviz_pca_biplot(
+  pca,
+  geom.ind = "point",
+  pointshape = 21,
+  pointsize = 2,
+  fill.ind = data_students_cluster$cluster,
+  addEllipses = TRUE,
+  legend.title = "Cluster"
+)
+
+
+# MCA
+data_voluntarios_cat <- data_voluntarios_3 %>% select(4,7,8,9)
+data_voluntarios_cat$Nacionalidad <- factor(ifelse(data_voluntarios_3$Nacionalidad == "Argentina", "Argentina", "OTRO"))
+mca <- MCA(data_voluntarios_cat, graph = TRUE)
+fviz_screeplot(mca, addlabels = TRUE, ncp = 12, ylim = c(0, 50))
+
+
