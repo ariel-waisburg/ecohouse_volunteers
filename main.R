@@ -8,6 +8,12 @@ library(naniar)
 library(ggplot2)
 library(factoextra)
 library(FactoMineR)
+library(hopkins)
+library(NbClust)
+library(cluster)
+library(rpart)
+library(rpart.plot)
+library(explore)
 
 
 # Import data ----------------------------------------------------------------
@@ -143,79 +149,7 @@ table(data_voluntarios_3$Turno)
 
 
 
-# Estudio de relaciones entre variables
 
-# Numerica con categoricas
-
-# Relacion entre edad y turno, si tiene las tardes libres es porque debe tener mas de 25
-# Se compararan las medias de ambos grupos de personas, separados por su tipo de turno
-t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
-# Hipotesis alternativa: La diferencia de las medias es mayor que cero
-# No hay evidencia estadistica suficiente para afirmar dicha hipotesis
-# alternativa, ya que su p-valor es 0.5685
-
-# Relacion entre edad y origen, suponiendo que mientras el origen es mas "avanzado" mas grande es
-t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Recibidos",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Recibidos",]$edad, alternative = 'less')
-# Con un p-valor de 0.003 podemos afirmar que las personas que
-# forman parte del grupo de recibidos, promedian una edad
-# menor que las que no
-
-t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Historial",]$edad, alternative = 'greater')
-
-t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Actuales",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Actuales",]$edad, alternative = 'less')
-# Con un p-valor de 0.01 podemos afirmar que las personas que
-# forman parte del grupo de actuales, promedian una edad
-# menor que las que no
-
-t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Eventuales",]$edad, alternative = 'greater')
-t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Formulario",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Formulario",]$edad, alternative = 'less')
-
-# Relacion entre edad y dias semanales
-cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Dias Semanales`),method = "spearman")
-# Este test plantea que la edad y la cantidad de dias semanales disponibles
-# tienen cierta correlacion, ya que su hipotesis alternativa dice
-# "la correlacion no es igual a cero", es decir, que existe
-# en este caso no hay suficiente evidencia estadistica para afirmar dicha
-# hipotesis, ya que su p-valor es 0.07108
-
-# Relacion entre edad y horas diarias
-cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Horas Diarias`),method = "spearman")
-# Este test plantea en su hipotesis alternativa que existe algun tipo de correlacion
-# entre la edad y la cantidad de horas diarias que puede colaborar una persona
-# aunque dicha hipotesis no tiene suficiente evidencia estadistica que la contraste
-
-# Relacion entre dias semanales y horas diarias
-chisq.test(table(data_voluntarios_3$`Dias Semanales`,data_voluntarios_3$`Horas Diarias`))
-# El resultado de este test indica que existe una relacion significativa entre
-# los dias semanales que tiene una persona y las horas diarias, ya que su p-valor
-# es menor que 2.2e-16, es decir que hay evidencia estadistica suficinete para
-# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
-
-# Relacion entre dias semanles y turno
-chisq.test(table(data_voluntarios_3$`Dias Semanales`,data_voluntarios_3$Turno))
-# El resultado de este test indica que existe una relacion significativa entre
-# los dias semanales que tiene una persona y el turno del dia en el que se
-# encuentra disponible , ya que su p-valor es menor que 2.2e-16,
-# es decir que hay evidencia estadistica suficinete para
-# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
-
-# Relacion entre horas diarias y turno
-chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
-# El resultado de este test indica que existe una relacion significativa entre
-# las horas diarias que tiene una persona y el turno del dia en el que se
-# encuentra disponible , ya que su p-valor es menor que 2.2e-16,
-# es decir que hay evidencia estadistica suficinete para
-# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
-
-
-
-t.test(data_voluntarios_3$edad[data_voluntarios_3$Origen=="Recibidos"],data_voluntarios_3$edad[data_voluntarios_3$Origen != "Recibidos"],alternative = "less")
-
-
-table(data_voluntarios_3$Origen)
-# Relacion entre edad y dias semanales
-cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen),method = "pearson")
-plot(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen))
 
 
 # Análisis exploratorio ---------------------------------------------------
@@ -306,23 +240,109 @@ graphedad = ggplot(data_voluntarios_3, aes(x = edad)) +
 
 # Relaciones entre variables ---------------------------------------------------
 
-# Comparacion medias de edades en relacion a las otras variables
+# ANALISIS DE ORIGEN/ESTADO:
 
-# Rechaza
-summary(aov(edad ~ Origen, data = data_voluntarios_3))
-TukeyHSD(aov(edad ~ Origen, data = data_voluntarios_3))
+## Comparacion medias de edades en relacion a las otras variables
 
+### Rechaza
+summary(aov(edad ~ Origen, data = data_voluntarios_3)) # cambia la media de las edades por Origen
+TukeyHSD(aov(edad ~ Origen, data = data_voluntarios_3)) # la diferencia de las medias se da especificamente entre Eventuales y Recibidos}
+
+ggplot(data_voluntarios_3, aes(x = edad, fill = Origen)) +
+  geom_density(alpha = 0.2) +
+  labs(title = "Density Plot of Edad by Group",
+       x = "Edad",
+       y = "Density") +
+  theme_minimal() +
+  scale_x_continuous(limits = c(15, 70), breaks = seq(15, 70, by = 5))
+
+ggplot(subset(data_voluntarios_3, Origen %in% c("Recibidos", "Eventuales")), aes(x = edad, fill = Origen)) +
+  geom_density(alpha = 0.2) +
+  labs(title = "Density Plot of Edad by Group",
+       x = "Edad",
+       y = "Density") +
+  theme_minimal() +
+  scale_x_continuous(limits = c(15, 70), breaks = seq(15, 70, by = 5)) +
+  geom_vline(xintercept = mean(data_voluntarios_3$edad[data_voluntarios_3$Origen == "Recibidos"]), color = "red", linetype = "dashed") +
+  geom_vline(xintercept = mean(data_voluntarios_3$edad[data_voluntarios_3$Origen == "Eventuales"]), color = "lightblue4", linetype = "dashed")
+
+### No rechaza: no modifica el promedio de edad por ninguna variable
 summary(aov(edad ~ `Horas Diarias`, data = data_voluntarios_3))
-
 summary(aov(edad ~ `Dias Semanales`, data = data_voluntarios_3))
-
 summary(aov(edad ~ Turno, data = data_voluntarios_3))
-
 summary(aov(edad ~ nacionalidades_agrupadas, data = data_voluntarios_3))
-
 summary(aov(edad ~ `Tipo de Documento`, data = data_voluntarios_3))
 
+## Disponibilidad horaria de las 3 con origen
 
+### Rechaza: hay relacion entre estado y c/u de las variables.
+fisher.test(table(data_voluntarios_3$nacionalidades_agrupadas,data_voluntarios_3$Origen))
+mosaicplot(table(data_voluntarios_3$nacionalidades_agrupadas,data_voluntarios_3$Origen), color = TRUE)
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
+mosaicplot(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen), color = TRUE)
+fisher.test(table(data_voluntarios_3$Turno, data_voluntarios_3$Origen))
+mosaicplot(table(data_voluntarios_3$Turno,data_voluntarios_3$Origen), color = TRUE)
+fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
+mosaicplot(table(data_voluntarios_3$Turno,data_voluntarios_3$`Horas Diarias`), color = TRUE)
+
+## Arboles
+data_arbol <- data_voluntarios_3 %>% select(-c(2, 3, 4, 5, 6))
+data_arbol_2 <- data_arbol %>% mutate(Estado = ifelse((Origen == "Recibidos" | Origen == "Actuales"), "Activo", "Inactivo")) %>% select(-1)
+
+data_arbol %>% explore_all(target = Origen)
+
+arbol_1 <- rpart(Origen~., data = data_arbol, method = "class")
+rpart.plot(arbol_1, main = "Arbol de Clasificacion: origen")
+
+arbol_2 <- rpart(Estado~., data = data_arbol_2, method = "class")
+rpart.plot(arbol_2, main = "Arbol de Clasificacion: estado")
+
+## Conclusiones
+
+1. Hay diferencia de medias de edades entre estados, especificamente entre Eventuales y Recibidos.
+2. Hay diferencia de medias de edades entre estados, especificamente entre Eventuales y Recibidos.
+3. Hay relacion entre estado y: nacionalidad arg/ext, horas diarias y turno.
+4.
+
+
+
+# Clustering
+data_voluntarios_num <- data.frame(apply(data_voluntarios_3 %>% select(7, 8, 10), 2, function(i) as.numeric(i)))
+data_voluntarios_num_scaled <- scale(data_voluntarios_num)
+
+## Analizar la utilidad del clustering: estudio de tendencia.
+H = 1 - hopkins(data_voluntarios_num_scaled)
+
+dist_data_voluntarios <- dist(data_voluntarios_num_scaled, method = "euclidean")
+
+fviz_dist(dist.obj = dist_data_voluntarios, show_labels = FALSE) +
+  labs(title = "Heatmap de distancias euclídeas ordenadas") + theme(legend.position = "bottom")
+
+n_clusters <- NbClust(data = data_voluntarios_num_scaled, distance = "euclidean", min.nc = 2,
+                      max.nc = 10, method = "kmeans", index = "all")
+
+clusters <- kmeans(x = dist_data_voluntarios, centers = 4, nstart = 50)
+data_voluntarios_cluster <- data_voluntarios_3 %>% mutate(cluster = as.factor(clusters$cluster))
+
+pca <- prcomp(data_voluntarios_num_scaled)
+summary(pca)
+screeplot(pca)
+fviz_pca_biplot(
+  pca,
+  geom.ind = "point",
+  pointshape = 21,
+  pointsize = 2,
+  fill.ind = data_students_cluster$cluster,
+  addEllipses = TRUE,
+  legend.title = "Cluster"
+)
+
+
+fviz_cluster <- fviz_cluster(object = clusters, data = data_voluntarios_num_scaled, show.clust.cent = TRUE,
+             ellipse.type = "euclid", star.plot = TRUE, repel = TRUE) +
+  labs(title = "Resultados clustering K-means") +
+  theme_bw() +
+  theme(legend.position = "none")
 
 # FIJARSE FISHER RECHAZA SIEMPRE
 
@@ -339,17 +359,6 @@ fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
 # Rechaza
 chisq.test(table(data_voluntarios_3$Turno,data_voluntarios_3$`Dias Semanales`))
 fisher.test(table(data_voluntarios_3$Turno,data_voluntarios_3$`Dias Semanales`))
-
-
-# Las 3 con origen
-chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
-fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
-
-chisq.test(table(data_voluntarios_3$Turno,data_voluntarios_3$Origen))
-fisher.test(table(data_voluntarios_3$Turno, data_voluntarios_3$Origen))
-
-chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
-fisher.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Origen))
 
 # Las 3 con nacionalidad
 chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$nacionalidades_agrupadas))
@@ -405,3 +414,115 @@ mca <- MCA(data_voluntarios_cat, graph = TRUE)
 fviz_screeplot(mca, addlabels = TRUE, ncp = 12, ylim = c(0, 50))
 
 
+
+data <- data_voluntarios %>%
+  select(1, 3, 6, 7, 8, 9) %>%
+  mutate(Estado = ifelse((Origen == "Recibidos" | Origen == "Actuales"), "Activo", "Inactivo"), edad = year(Sys.Date()) - year(`Fecha de Nacimiento`)) %>%
+  select(-c(1,2))
+
+data %>% describe()
+
+colSums(is.na(data))
+
+sum(rowSums(is.na(data[, c(1)])) == length(c(1)))
+
+
+data[which(rowSums(is.na(data[, c(2,3)])) == length(c(2,3))),] %>% group_by(Nacionalidad) %>% summarise(n = n())
+data[which(rowSums(is.na(data[, c(2,3)])) == length(c(2,3))),] %>% group_by(Estado) %>% summarise(n = n())
+mean((data[-which(rowSums(is.na(data[, c(2,3)])) == length(c(2,3))),]$edad)[!is.na(data[-which(rowSums(is.na(data[, c(2,3)])) == length(c(2,3))),]$edad)])
+
+which(rowSums(is.na(data[, c(2,3,4)])) == length(c(2,3,4)))
+
+which(rowSums(is.na(data[, c(2,3,4,6)])) == length(c(2,3,4,6)))
+
+data_comp <- data[complete.cases(data),] %>% mutate_if(is.character, as.factor)
+
+### Rechaza: hay relacion entre estado y c/u de las variables.
+#fisher.test(table(data_voluntarios_3$nacionalidades_agrupadas,data_voluntarios_3$Origen))
+#mosaicplot(table(data_voluntarios_3$nacionalidades_agrupadas,data_voluntarios_3$Origen), color = TRUE)
+fisher.test(table(data_comp$`Horas Diarias`,data_comp$Estado))
+mosaicplot(table(data_comp$`Horas Diarias`,data_comp$Estado), color = TRUE)
+fisher.test(table(data_comp$Turno,data_comp$Estado))
+mosaicplot(table(data_comp$Turno,data_comp$Estado), color = TRUE)
+
+
+arbol_3 <- rpart(Estado~., data = data_comp, method = "class")
+rpart.plot(arbol_3, main = "Arbol de Clasificacion: estado")
+
+# Count the number of rows meeting the condition
+
+# Tests viejos ------------------------------------------------------------
+
+# Estudio de relaciones entre variables
+
+# Numerica con categoricas
+
+# Relacion entre edad y turno, si tiene las tardes libres es porque debe tener mas de 25
+# Se compararan las medias de ambos grupos de personas, separados por su tipo de turno
+t.test(data_voluntarios_3[data_voluntarios_3$Turno=="TARDE",]$edad,data_voluntarios_3[data_voluntarios_3$Turno=="MAÑANA",]$edad, alternative = 'greater')
+# Hipotesis alternativa: La diferencia de las medias es mayor que cero
+# No hay evidencia estadistica suficiente para afirmar dicha hipotesis
+# alternativa, ya que su p-valor es 0.5685
+
+# Relacion entre edad y origen, suponiendo que mientras el origen es mas "avanzado" mas grande es
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Recibidos",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Recibidos",]$edad, alternative = 'less')
+# Con un p-valor de 0.003 podemos afirmar que las personas que
+# forman parte del grupo de recibidos, promedian una edad
+# menor que las que no
+
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Historial",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Historial",]$edad, alternative = 'greater')
+
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Actuales",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Actuales",]$edad, alternative = 'less')
+# Con un p-valor de 0.01 podemos afirmar que las personas que
+# forman parte del grupo de actuales, promedian una edad
+# menor que las que no
+
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Eventuales",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Eventuales",]$edad, alternative = 'greater')
+t.test(data_voluntarios_3[data_voluntarios_3$Origen=="Formulario",]$edad,data_voluntarios_3[data_voluntarios_3$Turno!="Formulario",]$edad, alternative = 'less')
+
+# Relacion entre edad y dias semanales
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Dias Semanales`),method = "spearman")
+# Este test plantea que la edad y la cantidad de dias semanales disponibles
+# tienen cierta correlacion, ya que su hipotesis alternativa dice
+# "la correlacion no es igual a cero", es decir, que existe
+# en este caso no hay suficiente evidencia estadistica para afirmar dicha
+# hipotesis, ya que su p-valor es 0.07108
+
+# Relacion entre edad y horas diarias
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$`Horas Diarias`),method = "spearman")
+# Este test plantea en su hipotesis alternativa que existe algun tipo de correlacion
+# entre la edad y la cantidad de horas diarias que puede colaborar una persona
+# aunque dicha hipotesis no tiene suficiente evidencia estadistica que la contraste
+
+# Relacion entre dias semanales y horas diarias
+chisq.test(table(data_voluntarios_3$`Dias Semanales`,data_voluntarios_3$`Horas Diarias`))
+# El resultado de este test indica que existe una relacion significativa entre
+# los dias semanales que tiene una persona y las horas diarias, ya que su p-valor
+# es menor que 2.2e-16, es decir que hay evidencia estadistica suficinete para
+# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
+
+# Relacion entre dias semanles y turno
+chisq.test(table(data_voluntarios_3$`Dias Semanales`,data_voluntarios_3$Turno))
+# El resultado de este test indica que existe una relacion significativa entre
+# los dias semanales que tiene una persona y el turno del dia en el que se
+# encuentra disponible , ya que su p-valor es menor que 2.2e-16,
+# es decir que hay evidencia estadistica suficinete para
+# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
+
+# Relacion entre horas diarias y turno
+chisq.test(table(data_voluntarios_3$`Horas Diarias`,data_voluntarios_3$Turno))
+# El resultado de este test indica que existe una relacion significativa entre
+# las horas diarias que tiene una persona y el turno del dia en el que se
+# encuentra disponible , ya que su p-valor es menor que 2.2e-16,
+# es decir que hay evidencia estadistica suficinete para
+# afirmar la hipotesis alternativa que plantea lo afirmado previamente.
+
+
+
+t.test(data_voluntarios_3$edad[data_voluntarios_3$Origen=="Recibidos"],data_voluntarios_3$edad[data_voluntarios_3$Origen != "Recibidos"],alternative = "less")
+
+
+table(data_voluntarios_3$Origen)
+# Relacion entre edad y dias semanales
+cor.test(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen),method = "pearson")
+plot(data_voluntarios_3$edad,as.numeric(data_voluntarios_3$Origen))
