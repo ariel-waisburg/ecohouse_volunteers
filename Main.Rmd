@@ -16,6 +16,7 @@ library(rpart)
 library(rpart.plot)
 library(explore)
 library(mice)
+library(plotly)
 ```
 
 # Import data ----------------------------------------------------------------
@@ -112,17 +113,17 @@ para ver las freq. relativas: table(data_voluntarios_3$Origen) / length(data_vol
 # Missings ----------------------------------------------------------------
 ```{r}
 evaluar_missings <- function(data) {
-  md.pattern(data_voluntarios_3_new, rotate.names = TRUE)
+  md.pattern(data, rotate.names = TRUE)
 
-  cor(data_voluntarios_3_new %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "pairwise.complete.obs", method = c("pearson")) %>% round(digits = 2)
-  cor(data_voluntarios_3_new %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "complete.obs", method = c("pearson")) %>% round(digits = 2)
-  cor(data_voluntarios_3_new %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "complete.obs", method = c("spearman")) %>% round(digits = 2)
+  cor(data %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "pairwise.complete.obs", method = c("pearson")) %>% round(digits = 2)
+  cor(data %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "complete.obs", method = c("pearson")) %>% round(digits = 2)
+  cor(data %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric), use = "complete.obs", method = c("spearman")) %>% round(digits = 2)
 
-  dummyNA <-as.data.frame(abs(is.na(data_voluntarios_3_new)))
+  dummyNA <-as.data.frame(abs(is.na(data)))
 
   cor(dummyNA) %>% round(digits = 2)
 
-  cor(data_voluntarios_3_new %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric),
+  cor(data %>% mutate_if(~ is.factor(.) || is.character(.) || is.POSIXct(.), as.numeric),
       dummyNA, use = "pairwise.complete.obs") %>%
     round(digits = 2)
 }
@@ -228,9 +229,15 @@ data_regresion_2 <- data_voluntarios_2_new %>% mutate_if(is.factor, as.numeric)
 colnames(data_regresion_2) <- c("Horas_Diarias","Dias_Semanales","Turno","Estado","Edad","Argentino")
 regImp <- mice(subset(data_regresion_2, select = c(Horas_Diarias, Dias_Semanales, Turno, Estado)), m = 1, printFlag = F, seed = 123)
 coro_regImp <- complete(regImp, 1)
+coro_regImp$Dias_Semanales = factor(coro_regImp$Dias_Semanales + 1)
+coro_regImp$Horas_Diarias = factor(coro_regImp$Horas_Diarias + 1)
+coro_regImp$Turno = factor(ifelse(coro_regImp$Turno == "2", "TARDE", "MAÑANA"))
+coro_regImp$Estado = factor(ifelse(coro_regImp$Estado == "2", "TARDE", "MAÑANA"))
+
 summary(coro_regImp)
+
 data_voluntarios_2[,7:9] = coro_regImp[,1:3]
-data_voluntarios_2_new[,7:9] = coro_regImp[,1:3]
+data_voluntarios_2_new[,1:3] = coro_regImp[,1:3]
 ```
 
 Base 3
@@ -239,15 +246,347 @@ data_regresion_3 <- data_voluntarios_3_new %>% mutate_if(is.factor, as.numeric)
 colnames(data_regresion_3) <- c("Horas_Diarias","Dias_Semanales","Turno","Estado","Edad","Argentino")
 regImp_2 <- mice(subset(data_regresion_3, select = c(Horas_Diarias, Dias_Semanales, Turno, Estado)), m = 1, printFlag = F, seed = 123)
 coro_regImp_2 <- complete(regImp_2, 1)
+coro_regImp_2$Dias_Semanales = factor(coro_regImp_2$Dias_Semanales + 1)
+coro_regImp_2$Horas_Diarias = factor(coro_regImp_2$Horas_Diarias + 1)
+coro_regImp_2$Turno = factor(ifelse(coro_regImp_2$Turno == "2", "TARDE", "MAÑANA"))
+coro_regImp_2$Estado = factor(ifelse(coro_regImp_2$Estado == "2", "TARDE", "MAÑANA"))
 summary(coro_regImp_2)
-data_voluntarios_3[,9] = coro_regImp_2[,3]
-data_voluntarios_3_new[,9] = coro_regImp_2[,3]
+data_voluntarios_3[,7:9] = coro_regImp_2[,1:3]
+data_voluntarios_3_new[,1:3] = coro_regImp_2[,1:3]
 ```
 
 # Análisis exploratorio
 
+```{r}
+
+table(data_voluntarios_3_new$`Horas Diarias`) / length(data_voluntarios_3_new$`Horas Diarias`)
+table(data_voluntarios_3_new$`Dias Semanales`)/ length(data_voluntarios_3_new$`Dias Semanales`)
+table(data_voluntarios_3_new$Turno)/ length(data_voluntarios_3_new$`Dias Semanales`)
+table(data_voluntarios_2_new$Estado)/ length(data_voluntarios_2_new$Estado)
+table(data_voluntarios_2_new$Argentino)/ length(data_voluntarios_2_new$Argentino)
+summary(data_voluntarios_3_new)
+summary(data_voluntarios_2_new$Estado)
+summary(data_voluntarios_2_new$Argentino)
+
+
+bar_horas = ggplot(data_voluntarios_3_new, aes(x = `Horas Diarias`)) + geom_bar(fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Grafico de Barras de las Horas Diarias Disponibles", x = "Horas Diarias Disponibles", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 750), breaks = seq(0, 750, by = 200))
+
+bar_dias = ggplot(data_voluntarios_3_new, aes(x = `Dias Semanales`)) + geom_bar(fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Grafico de Barras de los Dias Semanales Disponibles", x = "Dias Semanales Disponibles", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 450), breaks = seq(0, 450, by = 100))
+
+pie_turno = ggplot(data_voluntarios_3_new, aes(x = "",fill = Turno)) +
+  geom_bar(width = 1, stat = "count", alpha = 0.8) +
+  coord_polar(theta = "y") +
+  labs(title = "Gráfico de Torta Frecuencia Turnos", fill = "Turno") +
+  scale_fill_manual(values = c("blue","lightblue")) +
+  scale_y_continuous(limits = c(0, 893), breaks = seq(0, 900, by = 150)) +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
+
+pie_turno = ggplot(data_voluntarios_3_new, aes(x = "",fill = Estado)) +
+  geom_bar(width = 1, stat = "count", alpha = 0.8) +
+  coord_polar(theta = "y") +
+  labs(title = "Gráfico de Torta Frecuencia Estados", fill = "Estado") +
+  scale_fill_manual(values = c("blue","lightblue")) +
+  scale_y_continuous(limits = c(0, 893), breaks = seq(0, 893, by = 150)) +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
+
+
+pie_nacionalidad = ggplot(data_voluntarios_3_new, aes(x = "",fill = Argentino)) +
+  geom_bar(width = 1, stat = "count", alpha = 0.8) +
+  coord_polar(theta = "y") +
+  labs(title = "Gráfico de Torta Frecuencia Nacionalidad", fill = "Nacionalidad") +
+  scale_fill_manual(values = c("blue","lightblue")) +
+  scale_y_continuous(limits = c(0, 893), breaks = seq(0, 900, by = 150)) +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
+
+```
+
 # Análisis estadístico
+
+```{r}
+graphedad = ggplot(data_voluntarios_2_new, aes(x = Edad)) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5,size = 30),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) +
+  scale_y_continuous(limits = c(0, 500), breaks = seq(0, 500, by = 50)) +
+  scale_x_continuous(limits = c(0,80), breaks = seq(0,80, by = 10))
+```
 
 # Relaciones entre variables
 
+FIJARSE FISHER RECHAZA SIEMPRE
+## Entre las 3 de disponibilidad horaria
+Rechaza
+```{r}
+chisq.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$`Dias Semanales`))
+fisher.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$`Dias Semanales`))
+```
+
+Rechaza
+```{r}
+chisq.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Turno))
+fisher.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Turno))
+
+```
+
+Rechaza
+```{r}
+chisq.test(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$`Dias Semanales`))
+fisher.test(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$`Dias Semanales`))
+```
+
+```{r}
+chisq.test(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$`Dias Semanales`))
+fisher.test(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$`Dias Semanales`))
+```
+
+
+## Las 3 con nacionalidad
+```{r}
+chisq.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Argentino))
+fisher.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Argentino))
+
+chisq.test(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$Argentino))
+fisher.test(table(data_voluntarios_3_new$Turno, data_voluntarios_3_new$Argentino))
+
+chisq.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Argentino))
+fisher.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Argentino))
+
+```
+
+# Análisis de Estado
+
+### Comparacion de medias de edades en relacion a Estado
+
+```{r}
+t.test(data_voluntarios_2_new$Edad[data_voluntarios_2_new$Estado=="Activo"],data_voluntarios_2_new$Edad[data_voluntarios_2_new$Estado!="Activo"], alternative = "less")
+
+ggplot(data_voluntarios_2_new, aes(x = Edad, fill = Estado)) +
+  geom_density(alpha = 0.2) +
+  labs(title = "Density Plot of Edad by Group",
+       x = "Edad",
+       y = "Density") +
+  theme_minimal() +
+  scale_x_continuous(limits = c(15, 70), breaks = seq(15, 70, by = 5)) +
+  geom_vline(xintercept = mean(data_voluntarios_2_new$Edad[data_voluntarios_2_new$Estado == "Activo"]), color = "red", linetype = "dashed") +
+  geom_vline(xintercept = mean(data_voluntarios_2_new$Edad[data_voluntarios_2_new$Estado == "Inactivo"]), color = "lightblue4", linetype = "dashed")
+```
+
+### Disponibilidad horaria de las 3 con Estado
+
+Rechaza: hay relacion entre estado y c/u de las variables.
+```{r}
+fisher.test(table(data_voluntarios_2_new$Argentino,data_voluntarios_2_new$Estado))
+mosaicplot(table(data_voluntarios_2_new$Argentino,data_voluntarios_2_new$Estado), color = TRUE)
+
+fisher.test(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Estado))
+mosaicplot(table(data_voluntarios_3_new$`Horas Diarias`,data_voluntarios_3_new$Estado), color = TRUE)
+
+fisher.test(table(data_voluntarios_3_new$Turno, data_voluntarios_3_new$Estado))
+mosaicplot(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$Estado), color = TRUE)
+
+fisher.test(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3_new$Estado))
+mosaicplot(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3$Estado), color = TRUE)
+```
+
+### Clustering
+```{r}
+data_voluntarios_num <- na.omit(data.frame(apply(data_voluntarios_3_new %>% select(1, 2, 5), 2, function(i) as.numeric(i))))
+data_voluntarios_num_scaled <- scale(data_voluntarios_num)
+```
+
+
+### PCA
+```{r}
+corrplot::corrplot.mixed(cor(data_voluntarios_num, method = "pearson"))
+corrplot::corrplot.mixed(cor(data_voluntarios_num, method = "spearman"))
+
+pca <- prcomp(data_voluntarios_num_scaled)
+summary(pca)
+screeplot(pca)
+fviz_pca_biplot(
+  pca,
+  geom.ind = "point",
+  pointshape = 21,
+  pointsize = 2,
+  fill.ind = data_voluntarios_cluster[complete.cases(data_voluntarios_cluster$Edad),]$Estado,
+  addEllipses = TRUE,
+  legend.title = "Estado"
+)
+```
+
+### Arboles
+```{r}
+data_voluntarios_3_new %>% explore_all(target = Estado)
+
+arbol_2 <- rpart(Estado~., data = data_voluntarios_2_new, method = "class")
+rpart.plot(arbol_2, main = "Arbol de Clasificacion: estado")
+
+arbol_3 <- rpart(Estado~., data = data_voluntarios_3_new, method = "class")
+rpart.plot(arbol_3, main = "Arbol de Clasificacion: estado")
+
+arbol_4 <- rpart(Estado~., data = data_voluntarios_4_new, method = "class")
+rpart.plot(arbol_4, main = "Arbol de Clasificacion: estado")
+```
+
+### MCA
+```{r}
+plot3d <- function(X, col = NULL, id = NULL, size = 6, cube = TRUE) {
+  
+  library(plotly)
+  library(RColorBrewer)
+  
+  n <- nrow(X)
+  p <- ncol(X)
+  
+  data <- data.frame(scale(X, scale = FALSE))
+  names(data) <- c('x1', 'x2', 'x3')
+  
+  if (is.null(col)) {
+    data$col <- rep('black', n)
+  } else {
+    data$col <- col
+  }
+  
+  if (is.null(id)) {
+    data$id <- 1:n
+  } else {
+    data$id <- id
+  }
+  
+  fig <- plot_ly(data,
+                 x = ~data[, 1], y = ~data[, 2], z = ~data[, 3],
+                 colors = brewer.pal(p, 'Set1'),
+                 text = ~id,  # Add text information
+                 marker = list(size = size),
+                 textposition = "middle center",  # Set the text position
+                 textfont = list(size = 12, color = "black"))  # Set text font
+  
+  fig <- fig %>% add_markers(color = ~col)
+  
+  fig <- fig %>% layout(scene = list(xaxis = list(title = colnames(X)[1],
+                                                  range = c(min(data$x1), max(data$x1))),
+                                     yaxis = list(title = colnames(X)[2],
+                                                  range = c(min(data$x2), max(data$x2))),
+                                     zaxis = list(title = colnames(X)[3],
+                                                  range = c(min(data$x3), max(data$x3))),
+                                     aspectmode = ifelse(cube == TRUE, 'cube', 'auto')))
+  
+  fig
+}
+
+```
+
+
+```{r}
+data_voluntarios_cat <- data_voluntarios_3_new %>% select(-5)
+mca <- MCA(data_voluntarios_cat, graph = TRUE)
+fviz_screeplot(mca, addlabels = TRUE, ncp = 12, ylim = c(0, 50))
+
+
+
+
+autovectores <- mca$var$contrib[,1:3]
+colnames(autovectores) <- paste("dim", seq(1:3), mca$eig[,"percentage of variance"][1:3] %>% round(2), "%")
+plot <- plot3d(mca$var$contrib[,1:3], id = rownames(autovectores), cube = FALSE)
+plot
+htmlwidgets::saveWidget(widget = plot, file = "grafico_interactivo.html")
+```
+
+
+- Promedio de edad diferente.
+- Estado se relaciona con argentino, turno, dias y horas.
+- Los activos tienden a ser jovenes y además tener una disponibilidad horaria considerable.
+- Gran cantidad de dias semanales no te asegura que sea activo, pero poca cantidad si te da fuertes indicios de que sea inactivo.
+    - pca y arbol. (3/4)
+- 22 <= EDAD <= 31 para que probablemente sea activo.
+- Si es tarde tiende a ser inactivo, por lo tanto si es mañana a ser activo.
+
+
+
 # Algoritmos
+
+
+#### Analizar la utilidad del clustering: estudio de tendencia.
+```{r}
+H = 1 - hopkins(data_voluntarios_num_scaled)
+
+dist_data_voluntarios <- dist(data_voluntarios_num_scaled, method = "euclidean")
+
+fviz_dist(dist.obj = dist_data_voluntarios, show_labels = FALSE) +
+  labs(title = "Heatmap de distancias euclídeas ordenadas") + theme(legend.position = "bottom")
+
+n_clusters <- NbClust(data = data_voluntarios_num_scaled, distance = "euclidean", min.nc = 2,
+                      max.nc = 10, method = "kmeans", index = "all")
+
+clusters <- kmeans(x = dist_data_voluntarios, centers = 3, nstart = 50)
+data_voluntarios_cluster <- na.omit(data_voluntarios_3_new) %>% mutate(cluster = as.factor(clusters$cluster))
+
+fviz_cluster <- fviz_cluster(object = clusters, data = data_voluntarios_num_scaled, show.clust.cent = TRUE,
+             ellipse.type = "euclid", star.plot = TRUE, repel = TRUE) +
+  labs(title = "Resultados clustering K-means") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+plot3d(data_voluntarios_num_scaled, col = clusters$Estado, cube = FALSE)
+
+
+# Prueba con diferentes valores de k
+elbow_results <- numeric(length = 10)
+for (i in 1:10) {
+  model <- kproto(data_voluntarios_3_new, i)
+  elbow_results[i] <- model$tot.withinss
+}
+
+# Grafica los resultados
+plot(1:10, elbow_results, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Total Within-Cluster Sum of Squares")
+
+
+result <- kproto(data_voluntarios_3_new, 4)
+
+data_voluntarios_3_cluster <- data_voluntarios_3_new %>% mutate(cluster = factor(result$cluster)) %>% select(-6)
+
+data_voluntarios_3_cluster %>% select(-5) %>% explore_all(target = cluster)
+
+data_voluntarios_3_cluster %>% group_by(cluster) %>% summarise(q25 = quantile(Edad,0.25), q75 = quantile(Edad,0.75), n = n())
+
+ggplot(data_voluntarios_3_cluster, aes(x = Edad, fill = factor(cluster))) +
+  geom_density(alpha = 0.2) +
+  labs(title = "Density Plot of Edad by Group",
+       x = "Edad",
+       y = "Density") +
+  theme_minimal() +
+  scale_x_continuous(limits = c(15, 70), breaks = seq(15, 70, by = 5)) +
+  geom_vline(xintercept = mean(data_voluntarios_3_cluster$Edad[data_voluntarios_3_cluster$cluster == 1]), color = "red", linetype = "dashed") +
+  geom_vline(xintercept = mean(data_voluntarios_3_cluster$Edad[data_voluntarios_3_cluster$cluster == 2]), color = "yellow", linetype = "dashed") +
+  geom_vline(xintercept = mean(data_voluntarios_3_cluster$Edad[data_voluntarios_3_cluster$cluster == 3]), color = "lightblue", linetype = "dashed") +
+  geom_vline(xintercept = mean(data_voluntarios_3_cluster$Edad[data_voluntarios_3_cluster$cluster == 4]), color = "violet", linetype = "dashed")
+```
+```

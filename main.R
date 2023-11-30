@@ -287,14 +287,14 @@ mosaicplot(table(data_voluntarios_3$Turno,data_voluntarios_3$`Horas Diarias`), c
 
 ## Arboles
 data_arbol <- data_voluntarios_3 %>% select(-c(2, 3, 4, 5, 6))
-data_arbol_2 <- data_arbol %>% mutate(Estado = ifelse((Origen == "Recibidos" | Origen == "Actuales"), "Activo", "Inactivo")) %>% select(-1)
+data_arbol_2 <- data_voluntarios_2_new %>% mutate(Estado = ifelse((Origen == "Recibidos" | Origen == "Actuales"), "Activo", "Inactivo")) %>% select(-1)
 
 data_arbol %>% explore_all(target = Origen)
 
 arbol_1 <- rpart(Origen~., data = data_arbol, method = "class")
 rpart.plot(arbol_1, main = "Arbol de Clasificacion: origen")
 
-arbol_2 <- rpart(Estado~., data = data_arbol_2, method = "class")
+arbol_2 <- rpart(Estado~., data = data_voluntarios_2_new, method = "class")
 rpart.plot(arbol_2, main = "Arbol de Clasificacion: estado")
 
 ## Conclusiones
