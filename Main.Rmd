@@ -17,6 +17,7 @@ library(rpart.plot)
 library(explore)
 library(mice)
 library(plotly)
+library(clustMixType)
 ```
 
 # Import data ----------------------------------------------------------------
@@ -296,7 +297,7 @@ pie_turno = ggplot(data_voluntarios_3_new, aes(x = "",fill = Turno)) +
         legend.title = element_text(size = 12),
         axis.text = element_text(size = 10))
 
-pie_turno = ggplot(data_voluntarios_3_new, aes(x = "",fill = Estado)) +
+pie_estado = ggplot(data_voluntarios_3_new, aes(x = "",fill = Estado)) +
   geom_bar(width = 1, stat = "count", alpha = 0.8) +
   coord_polar(theta = "y") +
   labs(title = "Gráfico de Torta Frecuencia Estados", fill = "Estado") +
@@ -324,7 +325,7 @@ pie_nacionalidad = ggplot(data_voluntarios_3_new, aes(x = "",fill = Argentino)) 
 # Análisis estadístico
 
 ```{r}
-graphedad = ggplot(data_voluntarios_2_new, aes(x = Edad)) +
+hist_edad = ggplot(data_voluntarios_2_new, aes(x = Edad)) +
   geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
   labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5,size = 30),
@@ -575,7 +576,7 @@ data_voluntarios_3_cluster <- data_voluntarios_3_new %>% mutate(cluster = factor
 
 data_voluntarios_3_cluster %>% select(-5) %>% explore_all(target = cluster)
 
-data_voluntarios_3_cluster %>% group_by(cluster) %>% summarise(q25 = quantile(Edad,0.25), q75 = quantile(Edad,0.75), n = n())
+data_voluntarios_3_cluster %>% group_by(cluster) %>% summarise(q25 = quantile(Edad,0.25),media = mean(Edad), q75 = quantile(Edad,0.75), n = n())
 
 ggplot(data_voluntarios_3_cluster, aes(x = Edad, fill = factor(cluster))) +
   geom_density(alpha = 0.2) +
