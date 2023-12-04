@@ -298,7 +298,7 @@ pie_turno = ggplot(data_voluntarios_3_new, aes(x = "",fill = Turno)) +
         legend.title = element_text(size = 12),
         axis.text = element_text(size = 10))
 
-pie_turno = ggplot(data_voluntarios_3_new, aes(x = "",fill = Estado)) +
+pie_estado = ggplot(data_voluntarios_3_new, aes(x = "",fill = Estado)) +
   geom_bar(width = 1, stat = "count", alpha = 0.8) +
   coord_polar(theta = "y") +
   labs(title = "Gráfico de Torta Frecuencia Estados", fill = "Estado") +
@@ -326,7 +326,7 @@ pie_nacionalidad = ggplot(data_voluntarios_3_new, aes(x = "",fill = Argentino)) 
 # Análisis estadístico
 
 ```{r}
-graphedad = ggplot(data_voluntarios_2_new, aes(x = Edad)) +
+hist_edad = ggplot(data_voluntarios_2_new, aes(x = Edad)) +
   geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
   labs(title = "Histograma de las edades de los voluntarios registrados", x = "Edad", y = "Frecuencia") + theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5,size = 30),
@@ -412,7 +412,7 @@ fisher.test(table(data_voluntarios_3_new$Turno, data_voluntarios_3_new$Estado))
 mosaicplot(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$Estado), color = TRUE)
 
 fisher.test(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3_new$Estado))
-mosaicplot(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3$Estado), color = TRUE)
+mosaicplot(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3_new$Estado), color = TRUE)
 ```
 
 ### Clustering
