@@ -99,8 +99,6 @@ data_voluntarios_4_new
 View(data_voluntarios_4_new)
 ```
 
-para ver las freq. relativas: table(data_voluntarios_3$Origen) / length(data_voluntarios_3$Origen) * 100
-
 # Outliers ----------------------------------------------------------------
 
 ```{r}
@@ -412,7 +410,7 @@ fisher.test(table(data_voluntarios_3_new$Turno, data_voluntarios_3_new$Estado))
 mosaicplot(table(data_voluntarios_3_new$Turno,data_voluntarios_3_new$Estado), color = TRUE)
 
 fisher.test(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3_new$Estado))
-mosaicplot(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3$Estado), color = TRUE)
+mosaicplot(table(data_voluntarios_3_new$`Dias Semanales`, data_voluntarios_3_new$Estado), color = TRUE)
 ```
 
 ### Clustering
@@ -435,10 +433,12 @@ fviz_pca_biplot(
   geom.ind = "point",
   pointshape = 21,
   pointsize = 2,
-  fill.ind = data_voluntarios_cluster[complete.cases(data_voluntarios_cluster$Edad),]$Estado,
+  fill.ind = (na.omit(data_voluntarios_3_new %>% select(1, 2, 4, 5)))$Estado,
   addEllipses = TRUE,
   legend.title = "Estado"
 )
+
+
 ```
 
 ### Arboles
